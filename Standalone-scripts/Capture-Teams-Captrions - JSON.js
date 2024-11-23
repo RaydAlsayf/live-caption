@@ -7,7 +7,7 @@ const transcriptArray = JSON.parse(localStorage.getItem("transcripts")) || [];
 function checkTranscripts() {
     const closedCaptionsContainer = document.querySelector("[data-tid='closed-captions-renderer']")
     if (!closedCaptionsContainer) {
-        // alert("Please, click 'More' > 'Language and speech' > 'Turn on life captions'");
+        alert("Please, click 'More' > 'Language and speech' > 'Turn on life captions'");
         return;
     }
     const transcripts = closedCaptionsContainer.querySelectorAll('.ui-chat__item');
