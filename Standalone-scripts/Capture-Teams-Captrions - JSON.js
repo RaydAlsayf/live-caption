@@ -84,5 +84,93 @@ function downloadJSON() {
     downloadAnchorNode.remove();
 }
 
+function formatTranscriptsAsConversation(includeTime = true) {
+    const transcripts = JSON.parse(localStorage.getItem('transcripts')) || [];
+
+    if (transcripts.length === 0) {
+        console.log("No transcripts available.");
+        return;
+    }
+
+    let result = '';
+    let currentSpeaker = '';
+    let startTime = '';
+    let endTime = '';
+    let conversation = '';
+
+    transcripts.forEach((transcript, index) => {
+        const { Name, Text, Time } = transcript;
+
+        // If the speaker changes or it's the last entry
+        if (Name !== currentSpeaker || index === transcripts.length - 1) {
+            // Append the current speaker's conversation if any
+            if (currentSpeaker) {
+                if (includeTime) {
+                    result += `**${currentSpeaker} [${startTime} - ${endTime}]:**  \n${conversation.trim()}  \n\n`;
+                } else {
+                    result += `**${currentSpeaker}:**  \n${conversation.trim()}  \n\n`;
+                }
+            }
+
+            // Reset for the new speaker
+            currentSpeaker = Name;
+            startTime = Time;
+            conversation = '';
+        }
+
+        // Append current text to the conversation
+        conversation += `${Text}  \n`;
+
+        // Update the endTime to the latest time
+        endTime = Time;
+    });
+
+    // Append the last speaker's conversation
+    if (conversation.trim()) {
+        if (includeTime) {
+            result += `**${currentSpeaker} [${startTime} - ${endTime}]:**  \n${conversation.trim()}  \n\n`;
+        } else {
+            result += `**${currentSpeaker}:**  \n${conversation.trim()}  \n\n`;
+        }
+    }
+
+    console.log(result.trim());
+    return result.trim();
+}
+
+function downloadConversation(includeTime = true) {
+    // Get the formatted conversation
+    const conversation = formatTranscriptsAsConversation(includeTime);
+
+    if (!conversation) {
+        console.log("No conversation to download.");
+        return;
+    }
+
+    // Create a Blob with the conversation text
+    const blob = new Blob([conversation], { type: 'text/plain' });
+
+    // Generate a filename with the page title and timestamp
+    const title = document.title.replace(/[^a-zA-Z0-9 ]/g, '').trim(); // Sanitize title
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); // Replace : and . with -
+    const fileName = `${title || 'conversation'}-${timestamp}.txt`;
+
+    // Create an anchor element to trigger the download
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.href = URL.createObjectURL(blob);
+    downloadAnchorNode.download = fileName;
+
+    // Append the anchor to the DOM, click it, and remove it
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+// lets Download with time
+//downloadConversation(true);
+
+// lets Download without time
+//downloadConversation(false);
+
 // Let's download the JSON 
 // downloadJSON();
